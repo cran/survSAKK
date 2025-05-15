@@ -81,6 +81,27 @@ test_that("Ensure `segment.quanitle` is handles without error.",{
   expect_silent(surv.plot(fit = survObject, segment.quantile = 0.5, segment.type = 3))
 })
 
+test_that("Ensure several `segment.quanitle` and different positions are handles without error.",{
+  expect_silent(surv.plot(fit = survObject,
+                          segment.quantile = c(0.5, 0.75),
+                          segment.type = 3,
+                          segment.annotation = "left"))
+})
+
+test_that("Ensure several `segment.quanitle` and different positions are handles without error.",{
+  expect_silent(surv.plot(fit = survObject,
+                          segment.quantile = c(0.5, 0.75),
+                          segment.type = 3,
+                          segment.annotation = "top"))
+})
+
+test_that("Ensure several `segment.quanitle` and different positions are handles without error.",{
+  expect_silent(surv.plot(fit = survObject,
+                          segment.quantile = c(0.5, 0.75),
+                          segment.type = 3,
+                          segment.annotation = "bottom"))
+})
+
 test_that("Ensure `segment.timpoint` is handles without error.",{
   expect_silent(surv.plot(fit = survObject, segment.timepoint = 360, segment.type = 1))
 })
@@ -120,7 +141,7 @@ test_that("surv.plot throws error for invalid risktable parameter", {
 test_that("surv.plot throws error for invalid risktable parameter", {
   expect_silent(surv.plot(fit =survfit(Surv(time, status) ~ sex, data = lung),
                           segment.timepoint = 0.5 ,
-                          segment.annotation = "top"))
+                          segment.annotation = "bottom"))
 })
 
 test_that("surv.plot throws error for invalid risktable parameter", {
@@ -282,6 +303,20 @@ test_that("Check if short annotation works without an error.", {
                           segment.confint = FALSE))
 })
 
+test_that("Check if short annotation works without an error for one arm with segment.main given.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
+                          segment.quantile = 0.5,
+                          segment.main = "Median is equal to ",
+                          segment.confint = FALSE))
+})
+
+test_that("Check if short annotation works without an error for more than two arms.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ ph.ecog, data = lung),
+                          segment.quantile = 0.5,
+                          segment.main = "Median is equal to ",
+                          segment.confint = FALSE))
+})
+
 test_that("Check if short annotation works without an error.", {
   expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
                           segment.quantile = 0.5,
@@ -295,8 +330,8 @@ test_that("Check if short annotation works without an error.", {
                           segment.confint = FALSE))
 })
 
-test_that("Check if short annotation can handle error.", {
-  expect_error(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
+test_that("Check if CI for segment can be omitted for one arm", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
                           segment.quantile = 0.25,
                           segment.confint = FALSE))
 })
@@ -324,6 +359,29 @@ test_that("Check for annotation with only one arm.", {
   expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
                           segment.timepoint = 360,
                           segment.confint = FALSE,
+                          y.unit = "percent"))
+})
+
+test_that("Check for short annotation with only one arm and segment.main given.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
+                          segment.timepoint = 360,
+                          segment.confint = FALSE,
+                          segment.main = "Survival at one year",
+                          y.unit = "percent"))
+})
+
+test_that("Check for short annotation with more than two arms.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ ph.ecog, data = lung),
+                          segment.timepoint = 360,
+                          segment.confint = FALSE,
+                          segment.main = "Survival at one year"))
+})
+
+test_that("Check for short annotation with more than two arms in percent.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ ph.ecog, data = lung),
+                          segment.timepoint = 360,
+                          segment.confint = FALSE,
+                          segment.main = "Survival at one year",
                           y.unit = "percent"))
 })
 
@@ -362,15 +420,15 @@ test_that("Check if segment can handle error.", {
 })
 
 
-# Test 21: Check Error message if no confidence interval should be displayed but number of arms is not equal to 2
+# Test 21: Check if CI can be omitted if there is only one arm
 test_that("Check if CI with one arm can handle error.", {
-  expect_error(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
                          segment.quantile = 0.50,
                          segment.confint = FALSE))
 })
 
 # Test 22:
-test_that("Check if error with different segment type can handle error.", {
+test_that("Check error if segment quantile AND time point should be added.", {
   expect_error(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
                          segment.quantile = 0.50,
                          segment.timepoint = 360,
@@ -398,18 +456,174 @@ test_that("Check if error with different segment type can handle error.", {
                            segment.main = "Test"))
 })
 
+test_that("Check if other quantile than median can be added.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          segment.quantile = 0.25))
+})
+
 test_that("Check if error with different segment type can handle error.", {
   expect_warning(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
                            segment.timepoint = c(300, 650),
                            segment.main = "Test"))
 })
 
+test_that("Check several time points and position.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                           segment.timepoint = c(300, 650),
+                           segment.annotation = "left"))
+})
 
+test_that("Check several time points and position.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          segment.timepoint = c(300, 650),
+                          segment.annotation = "bottom"))
+})
 
+test_that("Check several time points and position.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          segment.timepoint = c(300, 650),
+                          segment.annotation = "top"))
+})
 
+test_that("Check segment time point with short annotation with number of arms = 2.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          time.unit = "year",
+                          segment.timepoint = 300,
+                          segment.confint = F))
+})
 
+test_that("Check that time point with short annotation works if arms != 2.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
+                          time.unit = "year",
+                          segment.timepoint = 300,
+                          segment.confint = F))
+})
 
+test_that("Check if time point label works for 'percent' and 'segment.main' given.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
+                         time.unit = "year",
+                         y.unit = "percent",
+                         segment.main = "Survival at time at time point",
+                         segment.timepoint = 300))
+})
 
+test_that("Check if time point label works for 'percent' and 'segment.main' not given.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
+                         time.unit = "year",
+                         y.unit = "percent",
+                         segment.timepoint = 300))
+})
+
+test_that("Check segment time point with long annotation with number of arms = 2.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          time.unit = "year",
+                          segment.timepoint = 300,
+                          y.unit = "percent"))
+})
+
+test_that("Check error if segment timepoint and quantile should be added if segment.type = 3.", {
+  expect_error(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          time.unit = "year",
+                          segment.timepoint = 300,
+                          segment.quantile = 0.25,
+                          y.unit = "percent",
+                          segment.type = 3))
+})
+
+test_that("Check error if segment timepoint and quantile should be added if segment.type = 2.", {
+  expect_error(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                         time.unit = "year",
+                         segment.timepoint = 300,
+                         segment.quantile = 0.25,
+                         y.unit = "percent",
+                         segment.type = 2))
+})
+
+test_that("Check error if segment timepoint and quantile should be added if segment.type = 2.", {
+  expect_error(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                         time.unit = "year",
+                         segment.timepoint = 300,
+                         segment.quantile = 0.25,
+                         y.unit = "percent",
+                         segment.type = 1))
+})
+
+test_that("Check error if segment.type = 4 is chosen.", {
+  expect_error(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                         time.unit = "year",
+                         segment.quantile = 0.25,
+                         y.unit = "percent",
+                         segment.type = 4))
+})
+
+test_that("Check segment annotation if several segment timepoint are chosen and y.unit == 'percent'.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                         time.unit = "year",
+                         segment.timepoint = c(150, 300),
+                         y.unit = "percent",
+                         segment.type = 1))
+})
+
+test_that("Check if `letter` on top left can be displayed.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ 1, data = lung),
+                          segment.annotation.two.lines = TRUE,
+                          segment.quantile = 0.50,
+                          y.unit = "percent",
+                          letter = "A"))
+})
+
+test_that("Check segment Title if 'segment.main' was specified", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          time.unit = "year",
+                          segment.timepoint = 150,
+                          y.unit = "percent",
+                          segment.type = 1,
+                          segment.main = "Survival at time point xx"))
+})
+
+test_that("Check error if 'stat' is not a valid argument.", {
+  expect_error(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          stat = "abc"))
+})
+
+test_that("Check 'stat,position' = 'left'.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                         stat = "coxph",
+                         stat.position = "left"))
+})
+
+test_that("Check 'stat,position' = 'right'.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          stat = "coxph",
+                          stat.position = "right"))
+})
+
+test_that("Check 'stat,position' = 'bottomright'.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          stat = "coxph",
+                          stat.position = "bottomright"))
+})
+
+test_that("Check 'stat.position' = 'top'.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          stat = "coxph",
+                          stat.position = "top"))
+})
+
+test_that("Check 'stat.fit' if 'reference.arm' is given.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          stat.fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          stat = "coxph",
+                          stat.position = "top"))
+})
+
+test_that("Check 'risktable.col'.", {
+  expect_silent(surv.plot(fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          stat.fit = survfit(Surv(time, status) ~ sex, data = lung),
+                          stat = "coxph",
+                          stat.position = "top",
+                          risktable.col = TRUE))
+})
 
 
 

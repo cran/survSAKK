@@ -19,7 +19,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Katrin Gysel \email{Katrin.Gysel@sakk.ch} [contributor]
+\strong{Maintainer}: Charlotte Micheloud \email{Charlotte.Micheloud@sakk.ch} [contributor]
 
 Authors:
 \itemize{
@@ -28,6 +28,7 @@ Authors:
 
 Other contributors:
 \itemize{
+  \item Katrin Gobat \email{Ka.Gobat@hotmail.com} [contributor]
   \item Stefanie Hayoz \email{Stefanie.Hayoz@sakk.ch} [contributor]
   \item SAKK, CC [copyright holder, funder]
   \item SCTO, Statistics [funder]

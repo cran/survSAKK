@@ -218,20 +218,22 @@ surv.plot(fit.lung.arm.m,
 )
 
 ## ----segment3-----------------------------------------------------------------
-# Several quantiles
+# Several quantiles: Drawing a segment line at the 0.25, 0.5 and 0.75 quantile
 surv.plot(fit.lung.arm.m,
-          legend.name = c("Male", "Female"),
-          segment.quantile = c(0.5, 0.25),
-          segment.annotation = "none",
-          time.unit = "month"
+          time.unit = "month",
+          segment.quantile = c(0.25, 0.5, 0.75),
+          segment.annotation = "top", 
+          segment.annotation.col = "black",
+          segment.annotation.offset = 1
 )
 
-# Several time points
+# Several time points: Drawing a segment line at 6, 12, 18 and 24 months
 surv.plot(fit.lung.arm.m,
           legend.name = c("Male", "Female"),
-          segment.timepoint = c(6, 18),
-          segment.annotation = "none",
-          time.unit = "month"
+          time.unit = "month",
+          segment.timepoint = c(6, 12, 18, 24),
+          segment.type = 1,
+          segment.annotation.col = "black"
 )
 
 ## ----segment5-----------------------------------------------------------------
@@ -245,10 +247,24 @@ surv.plot(fit.lung.arm.m,
 )
 
 ## ----segment7-----------------------------------------------------------------
+surv.plot(fit.lung.m,
+          time.unit = "month",
+          segment.quantile = 0.5,
+          segment.confint = FALSE
+)
+
+surv.plot(fit.lung.m,
+          time.unit = "month",
+          segment.timepoint = 18,
+          segment.confint = FALSE,
+          segment.annotation = "bottomleft"
+)
+
+## ----segment7b----------------------------------------------------------------
 surv.plot(fit.lung.arm.m,
           legend.name = c("Male", "Female"),
           time.unit = "month",
-          segment.quantile = 0.5,
+          segment.quantile = 0.25,
           segment.confint = FALSE
 )
 surv.plot(fit.lung.arm.m,
@@ -333,93 +349,52 @@ surv.plot(fit.lung.arm.m,
           theme = "Lancet")
 
 
-## ----default_setting, echo=FALSE, eval=TRUE-----------------------------------
-# Save old settings
-users_default_setting <- par(no.readonly = TRUE) 
-
-## ----plots1, fig.height = 8, fig.width = 8------------------------------------
-# Creating 4 sub-plot
-par(mfrow=c(2,2))
-
-# Plot 1
-surv.plot(fit.lung.d)
-# Plot 2
-surv.plot(fit.lung.arm.m, 
-          time.unit = "month")
-# Plot 3
-surv.plot(fit.lung.arm.y, 
-          col = c("cadetblue2", "cadetblue"), 
-          time.unit = "year", 
-          stat = "coxph")
-# Plot 4
-surv.plot(fit.lung.arm.m,
-          # Cusomization of the survival plot
-          main = "Kaplan-Meier plot",
-          legend.name = c("Male", "Female"),
-          legend.title = "Sex",
-          xlab.cex = 1.2,
-          ylab.cex = 1.2,
-          axis.cex = 0.8,
-          censoring.cex = 1,
-          legend.title.cex = 1.2,
-          # Customization of the risktable
-          risktable.name.position = -9,
-          risktable.title.position = -9,
-          risktable.cex = 0.7)
-
-## ----plots2, fig.height = 10, fig.width = 8-----------------------------------
-par(mfrow=c(2,1))
-# Plot 1
-surv.plot(fit.lung.arm.m, 
-          col = c("cadetblue2", "cadetblue"), 
-          time.unit = "month", 
-          segment.quantile = 0.5)
-# Plot 2
-surv.plot(fit.lung.arm.m, 
-          col = c("cadetblue2", "cadetblue"), 
-          time.unit = "month", 
-          segment.timepoint = 6)
-
-## ----resetSetting, echo = FALSE, eval = TRUE----------------------------------
-# Ensure that old settings are restored when the function exits
-par(users_default_setting)
-
-## ----plots3, fig.height = 10, fig.width = 8-----------------------------------
-split.screen(c(2,1))
+## ----plots3, fig.height = 10, fig.width = 10----------------------------------
+split.screen(c(2,2))
 screen(1)
 surv.plot(fit.lung.arm.m, 
           time.unit = "month", 
           segment.quantile = 0.5, 
-          segment.confint = FALSE)
+          segment.confint = FALSE, 
+          letter = "A")
 screen(2)
 surv.plot(fit.lung.arm.m, 
           time.unit = "month", 
-          segment.quantile = 0.75, 
-          segment.confint = FALSE)
+          segment.confint = FALSE, 
+          stat = "logrank",
+          letter = "B")
+screen(3)
+surv.plot(fit.lung.d, 
+          letter = "C")
+screen(4)
+surv.plot(fit.lung.m, 
+          time.unit = "month", 
+          col = "darkcyan",
+          letter = "D")
 close.screen(all = TRUE)
 
 ## ----export1, eval = FALSE----------------------------------------------------
-#  
-#  png(file = file.path("kaplan_meier_plot.png"),
-#      width = 20,
-#      height = 14,
-#      units = "cm",
-#      res = 300)
-#  surv.plot(fit.lung.arm.m,
-#            risktable.name.position=-4,
-#            risktable.title.position=-4)
-#  dev.off()
+# 
+# png(file = file.path("kaplan_meier_plot.png"),
+#     width = 20,
+#     height = 14,
+#     units = "cm",
+#     res = 300)
+# surv.plot(fit.lung.arm.m,
+#           risktable.name.position=-4,
+#           risktable.title.position=-4)
+# dev.off()
 
 ## ----export2, eval = FALSE----------------------------------------------------
-#  
-#  png(file = file.path("kaplan_meier_plot_big_font.png"),
-#      width = 20*0.7,
-#      height = 14*0.7,
-#      units = "cm",
-#      res = 300)
-#  surv.plot(fit.lung.arm.m,
-#            ylab = "Estimated survival \n (probability)",
-#            risktable.name.position=-6.5,
-#            risktable.title.position=-6.5)
-#  dev.off()
+# 
+# png(file = file.path("kaplan_meier_plot_big_font.png"),
+#     width = 20*0.7,
+#     height = 14*0.7,
+#     units = "cm",
+#     res = 300)
+# surv.plot(fit.lung.arm.m,
+#           ylab = "Estimated survival \n (probability)",
+#           risktable.name.position=-6.5,
+#           risktable.title.position=-6.5)
+# dev.off()
 

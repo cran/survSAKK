@@ -292,11 +292,12 @@ surv.plot(fit.lung.arm.m,
 )
 ```
 
+
 # Customisation of the segment
 
 ## Change position of segment annotation
 
-The parameter `segment.annotation` can take the following values: `c(x,y)`,`"bottomleft"`, `"left"`, `"right"`, `"top"`, `"none"`
+The parameter `segment.annotation` can take the following values: `c(x,y)`, `"bottom"`, `"bottomleft"`, `"left"`, `"right"`, `"top"`, `"none"`
 
 ```{r segment1}
 surv.plot(fit.lung.arm.m,
@@ -327,25 +328,28 @@ surv.plot(fit.lung.arm.m,
 
 ## Segment lines for different time points / quantile
 
-Note that `segment.annotation` needs to be set to "none". Otherwise the code does not work. 
+Note that `segment.annotation` can only be chosen as `"right"`, `"left"`, `"bottom"` or `"top"`. 
 
 ```{r segment3}
-# Several quantiles
+# Several quantiles: Drawing a segment line at the 0.25, 0.5 and 0.75 quantile
 surv.plot(fit.lung.arm.m,
-          legend.name = c("Male", "Female"),
-          segment.quantile = c(0.5, 0.25),
-          segment.annotation = "none",
-          time.unit = "month"
+          time.unit = "month",
+          segment.quantile = c(0.25, 0.5, 0.75),
+          segment.annotation = "top", 
+          segment.annotation.col = "black",
+          segment.annotation.offset = 1
 )
 
-# Several time points
+# Several time points: Drawing a segment line at 6, 12, 18 and 24 months
 surv.plot(fit.lung.arm.m,
           legend.name = c("Male", "Female"),
-          segment.timepoint = c(6, 18),
-          segment.annotation = "none",
-          time.unit = "month"
+          time.unit = "month",
+          segment.timepoint = c(6, 12, 18, 24),
+          segment.type = 1,
+          segment.annotation.col = "black"
 )
 ```
+
 
 ## Segment line type, line width and text spacing
 
@@ -362,13 +366,30 @@ surv.plot(fit.lung.arm.m,
 
 ## Segment annotation short version 
 
-Note that the option `segment.confint = FALSE` only works for two arms. 
+The confidence interval can be omitted in the segment annotation by setting `segment.confint = FALSE`. 
 
+Examples for one arm: 
 ```{r segment7}
+surv.plot(fit.lung.m,
+          time.unit = "month",
+          segment.quantile = 0.5,
+          segment.confint = FALSE
+)
+
+surv.plot(fit.lung.m,
+          time.unit = "month",
+          segment.timepoint = 18,
+          segment.confint = FALSE,
+          segment.annotation = "bottomleft"
+)
+```
+
+Examples for two arms: 
+```{r segment7b}
 surv.plot(fit.lung.arm.m,
           legend.name = c("Male", "Female"),
           time.unit = "month",
-          segment.quantile = 0.5,
+          segment.quantile = 0.25,
           segment.confint = FALSE
 )
 surv.plot(fit.lung.arm.m,
@@ -499,81 +520,33 @@ surv.plot(fit.lung.arm.m,
 ```
 
 
-# Multiple survival plots
 
-We present to ways how to combine plots: via `par(mfrow=c())` and via `split.screen()`
+# Multiple plots using `split.screen()` 
 
-## Multiple plots using `par(mfrow=c())` 
+We use the parameter `letter` to add a letter for every plot on the top to the right. 
 
-```{r default_setting, echo=FALSE, eval=TRUE}
-# Save old settings
-users_default_setting <- par(no.readonly = TRUE) 
-```
-
-```{r plots1, fig.height = 8, fig.width = 8}
-# Creating 4 sub-plot
-par(mfrow=c(2,2))
-
-# Plot 1
-surv.plot(fit.lung.d)
-# Plot 2
-surv.plot(fit.lung.arm.m, 
-          time.unit = "month")
-# Plot 3
-surv.plot(fit.lung.arm.y, 
-          col = c("cadetblue2", "cadetblue"), 
-          time.unit = "year", 
-          stat = "coxph")
-# Plot 4
-surv.plot(fit.lung.arm.m,
-          # Cusomization of the survival plot
-          main = "Kaplan-Meier plot",
-          legend.name = c("Male", "Female"),
-          legend.title = "Sex",
-          xlab.cex = 1.2,
-          ylab.cex = 1.2,
-          axis.cex = 0.8,
-          censoring.cex = 1,
-          legend.title.cex = 1.2,
-          # Customization of the risktable
-          risktable.name.position = -9,
-          risktable.title.position = -9,
-          risktable.cex = 0.7)
-```
-
-```{r plots2, fig.height = 10, fig.width = 8}
-par(mfrow=c(2,1))
-# Plot 1
-surv.plot(fit.lung.arm.m, 
-          col = c("cadetblue2", "cadetblue"), 
-          time.unit = "month", 
-          segment.quantile = 0.5)
-# Plot 2
-surv.plot(fit.lung.arm.m, 
-          col = c("cadetblue2", "cadetblue"), 
-          time.unit = "month", 
-          segment.timepoint = 6)
-```
-
-```{r resetSetting, echo = FALSE, eval = TRUE}
-# Ensure that old settings are restored when the function exits
-par(users_default_setting)
-```
-
-## Multiple plots using `split.screen()` 
-
-```{r plots3, fig.height = 10, fig.width = 8}
-split.screen(c(2,1))
+```{r plots3, fig.height = 10, fig.width = 10}
+split.screen(c(2,2))
 screen(1)
 surv.plot(fit.lung.arm.m, 
           time.unit = "month", 
           segment.quantile = 0.5, 
-          segment.confint = FALSE)
+          segment.confint = FALSE, 
+          letter = "A")
 screen(2)
 surv.plot(fit.lung.arm.m, 
           time.unit = "month", 
-          segment.quantile = 0.75, 
-          segment.confint = FALSE)
+          segment.confint = FALSE, 
+          stat = "logrank",
+          letter = "B")
+screen(3)
+surv.plot(fit.lung.d, 
+          letter = "C")
+screen(4)
+surv.plot(fit.lung.m, 
+          time.unit = "month", 
+          col = "darkcyan",
+          letter = "D")
 close.screen(all = TRUE)
 ```
 

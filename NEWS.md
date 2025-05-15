@@ -1,3 +1,18 @@
+# survSAKK 1.3.2
+
+This update brings a new functionality `letter` and the possibility of adding several segments.
+
+🛠️ **Improvement `surv.plot()`**
+  
+- Added option `letter` which can be used for several plots in one figure
+- Additional functionality of several segments
+
+✨  **New Maintainer**
+-Charlotte 
+
+--------------------------------------------------------------------------------
+
+
 # survSAKK 1.3.0
 
 This update brings a new data set named `esophagus`.

@@ -18,6 +18,8 @@
 #'
 #' @param fit An object of class [survival::survfit] containing survival data.
 #'
+#' @param ties String specifying the method for tie handling. If there are no tied death times all the methods are equivalent. Options: "efron", "breslow", "exact". Default: "efron"
+#'
 #' @param reference.arm A character string specifying the reference arm for comparison.
 #'
 #' @param time.unit A character string specifying the time unit which was used to create the `fit` object.
@@ -76,6 +78,15 @@
 #' @param xlab X-axis label.
 #'
 #' @param ylab Y-axis label.
+#'
+#' @param letter A letter to be displayed on the top to the left of the figure (for example
+#' if several plots are displayed in one figure).
+#'
+#' @param letter.cex The size of `letter` which is displayed on the top to the left.
+#'
+#' @param letter.pos.x The X-axis position of `letter` (corresponds to `adj` in `mtext`). Default is -0.35
+#'
+#' @param letter.pos.y The Y-axis position of `letter` (corresponds to `line` in `mtext`). Default is 1.
 #'
 #' @param xticks A numeric vector specifying the ticks of the x-axis.
 #'
@@ -185,22 +196,21 @@
 #'    - `3` italic
 #'    - `4` bold-italic
 #'
-#' @param segment.annotation Position of the segment annotation.
+#' @param segment.annotation Position of the segment annotation. If several quantiles or time points are chosen then
+#' the position can only be set to `"left"`, `"right"`, `"top"` or `"bottom"`.
 #'
-#' Options include: `c(x,y)`,`"bottomleft"`, `"left"`, `"right"`, `"top"`, `"none"`.
+#' Options include: `c(x,y)`, `"bottom"`, `"bottomleft"`, `"left"`, `"right"`, `"top"`, `"none"`.
+#'
+#' @param segment.annotation.offset The offset used in function `text()` for adding the annotation if several time points or quantiles are added.
 #'
 #' @param segment.annotation.two.lines A logical parameter to force that the
-#' annotation is displayed on two lines even if there is only one arm. This
+#' annotation is displayed on two lines. This
 #' parameter only has an effect if there is only one arm. Default: FALSE
 #'
 #' @param segment.confint A logical parameter specifying whether to display
-#' the confidence interval for the segment.
+#' the confidence interval for the segment. Default: TRUE
 #'
-#'
-#' *NOTE:* Only possible to set `segment.confint = FALSE` if there are two arms.
-#' Default is \code{TRUE}.
-#'
-#' @param segment.annotation.space Spacing between the text in units of x-coordinates.
+#' @param segment.annotation.space Spacing between the text in units of y-coordinates.
 #'
 #' @param stat.fit An object of class [survival::survfit] containing survival data.
 #' Used for calculation of statistics, allowing to add stratification factors.
@@ -348,6 +358,7 @@
 
 surv.plot <- function(
     fit,
+    ties = "efron",
     reference.arm,
     time.unit,
     y.unit = "probability",
@@ -367,6 +378,10 @@ surv.plot <- function(
     col = NULL,
     main = NULL,
     sub = NULL,
+    letter = NULL,
+    letter.cex = 1.5,
+    letter.pos.x = -0.35,
+    letter.pos.y = 1,
     xlab = NULL,
     ylab = NULL,
     xticks,
@@ -395,6 +410,7 @@ surv.plot <- function(
     segment.main = NULL,
     segment.confint = TRUE,
     segment.annotation = "right",
+    segment.annotation.offset = 0.5,
     segment.annotation.two.lines = FALSE,
     segment.annotation.col = col,
     segment.annotation.space = 0.06,
@@ -680,7 +696,7 @@ surv.plot <- function(
     stop("Provided theme argument does not exist!")
   }
 
-    #----------------------------------------------------------------------------#
+  #----------------------------------------------------------------------------#
   # 2. survPlot ####
   #----------------------------------------------------------------------------#
 
@@ -887,6 +903,15 @@ surv.plot <- function(
     stop("`legend` expecting TRUE or FAlSE as an argument!")
   }
 
+
+  #----------------------------------------------------------------------------#
+  ## 2.7 Add letter to plot  ####
+  #----------------------------------------------------------------------------#
+
+  if (!is.null(letter)){
+    mtext(text=bquote(bold(.(letter))), side=3,line=letter.pos.y, adj=letter.pos.x, cex=letter.cex)
+  }
+
   #----------------------------------------------------------------------------#
   # 3. survSegment ####
   #----------------------------------------------------------------------------#
@@ -903,9 +928,9 @@ surv.plot <- function(
     text_xpos <- segment.annotation[1]
     text_ypos <- segment.annotation[2]
     # Position the text to the right of the specified (x,y)
-    pos = 1 # 4
+    pos = 1
   } else if (segment.annotation == "bottomleft") {
-    text_ypos <- 0.05 #0.03
+    text_ypos <- 0.05
     text_xpos <- min(xticks)
     pos <- 4
   } else if (segment.annotation == "left"){
@@ -929,12 +954,16 @@ surv.plot <- function(
     text_ypos <- NULL
     text_xpos <- NULL
     pos <- 2
-  } else {
+  } else if (segment.annotation == "bottom") {
+    text_ypos <- 0.075
+    text_xpos <- max(xticks)*0.5
+    pos <- 1
+  }else {
     stop(paste0("'",segment.annotation,"'"," is not a valid argument!"))
   }
 
   # Determining the y coordinate for the text of each arm
-   if (arm_no > 1 & (segment.confint == T)){
+   if (arm_no > 1 & !(segment.confint == F & arm_no == 2)){
      text_ypos <- rep(text_ypos, arm_no) + (arm_no-1):0*segment.annotation.space
    }
 
@@ -955,11 +984,11 @@ surv.plot <- function(
       time.unit_temp <- ""
     }
 
-    # Annotation without CI for Comparing arm == 2:
-    ## `segment.annotation()` -> Annotation as Median: xx vs xx
-    ## Note: Only possible if exactly two arms are compared and
-    ##       Only one segment.quantile value is given.
+    # Annotation without CI
+    ## Note: Only possible if only one segment.quantile value is given.
 
+    # Annotation without CI for Comparing arm == 2
+    ## `segment.annotation()` -> Annotation as Median: xx vs xx
     if(segment.confint == FALSE & arm_no == 2 & length(segment.quantile) == 1){
         if (segment.quantile == 0.5) {
         quantile.temp <- "Median"
@@ -974,10 +1003,29 @@ surv.plot <- function(
                                time.unit_temp)
       segment.annotation.col <- "black"
 
-    } else if (segment.confint == FALSE & arm_no != 2) {
-      stop("The parameter `segment.confint()` cannot be set to FALSE when number of arms is unequal 2.")
+    } else if (segment.confint == FALSE & arm_no != 2 & length(segment.quantile) == 1) {
 
-      # Annotation if arm == 1:
+      # Short annotation without CI for one arm
+      if(arm_no == 1){
+        if(!is.null(segment.main)){
+          quantile.temp <- segment.main
+        } else if(segment.quantile == 0.5) {
+          quantile.temp <- paste0("Median: ")
+        } else {
+          quantile.temp <- paste0(segment.quantile, "-Quantile: ")
+        }
+
+        quantile_label <- paste0(quantile.temp,
+                                 ifelse(is.na(segment_x$quantile), "NR", round(segment_x$quantile, 1)),
+                                 time.unit_temp)
+
+      # Short annotation without CI for more than two arms
+      } else {
+        quantile_label <- paste0(ifelse(is.na(segment_x$quantile), "NR", round(segment_x$quantile, 1)),
+                                 time.unit_temp)
+      }
+
+    # Long annotation with confidence interval if arm == 1:
     } else if (arm_no == 1 & segment.annotation.two.lines == FALSE & length(segment.quantile) == 1) {
       if(!is.null(segment.main)){
         quantile.temp <- segment.main
@@ -996,7 +1044,7 @@ surv.plot <- function(
                              ifelse(is.na(segment_x$upper), "NR", round(segment_x$upper, 1)),
                              ")")
     } else {
-      # Annotation with CI for Comparing arm == 2:
+      # Long annotation with confidence interval for more than two arms:
       quantile_label <- paste0(ifelse(is.na(segment_x$quantile), "NR", round(segment_x$quantile, 1)),
                                time.unit_temp,
                                " (",
@@ -1013,7 +1061,7 @@ surv.plot <- function(
     segment_x <- segment.timepoint
     segment_y <- summary(fit,time = segment_x)
 
-    # Short annotation without confidence interval (only possible if number of arms = 2)
+    # Short annotation without confidence interval for two arms (notation: xx vs xx)
     if(segment.confint == F & arm_no == 2){
       if(missing(time.unit)){time_temp <- paste0("time ", segment.timepoint)}
       else {time_temp <- paste0(segment.timepoint, " ", time.unit, "s")}
@@ -1029,11 +1077,30 @@ surv.plot <- function(
       }
       segment.annotation.col <- "black"
 
-    # Error message if no confidence interval should be displayed but number of arms is not equal to 2
+    # Short annotation without confidence interval for one arm or for more than two arms
     } else if(segment.confint == F & arm_no != 2) {
-      stop("The parameter `segment.confint` cannot be set to FALSE when number of arms is unequal 2.")
+      # Short annotation without CI for one arm
+      if(arm_no == 1){
+        if(!is.null(segment.main)){time_temp <- paste0(segment.main)}
+        else if(missing(time.unit)){time_temp <- paste0("Survival at time ", segment.timepoint)}
+        else {time_temp <- paste0("Survival at ", segment.timepoint, " ", time.unit, "s")}
 
-    # Annotation for one arm on one line
+        if(y.unit == "percent"){
+          timepoint_label <- paste0(time_temp, ": ", round(segment_y$surv, digits = 3)*100, "%")
+        } else {
+          timepoint_label <- paste0(time_temp, ": ", round(segment_y$surv, digits = 2))
+        }
+
+      # Short annotation without CI for more than two arms
+      } else {
+        if(y.unit == "percent"){
+          timepoint_label <- paste0(round(segment_y$surv, digits = 3)*100, "%")
+        } else {
+          timepoint_label <- paste0(round(segment_y$surv, digits = 2))
+        }
+      }
+
+    # Long annotation with confidence interval for one arm on one line
     } else if(arm_no == 1 & segment.annotation.two.lines == FALSE) {
 
       if(!is.null(segment.main)){time_temp <- paste0(segment.main)}
@@ -1220,11 +1287,21 @@ surv.plot <- function(
       ## Input >1 for segment.timepoint()
     } else if (length(segment.timepoint) > 1){
       if(!is.null(segment.main)) {warning("`segment.main` for more than one timepoint is not supported")}
+      if(segment.annotation == "left") {
+        pos = 2
+      } else if(segment.annotation == "top"){
+        pos = 3
+      } else if(segment.annotation == "bottom"){
+        pos = 1
+      } else {
+        pos = 4
+      }
         if(y.unit == "percent"){
           text(x = segment_x,
                y = segment_y$surv,
                labels = paste0(round(segment_y$surv,2) * 100,"%"),
-               pos = pos, # anpassen/ hardcoden?
+               pos = pos,
+               offset = segment.annotation.offset,
                col = rep(segment.annotation.col, each = length(segment_x)),
                cex = segment.cex,
                font = segment.font)
@@ -1233,6 +1310,7 @@ surv.plot <- function(
                y = segment_y$surv,
                labels = round(segment_y$surv,2),
                pos = pos,
+               offset = segment.annotation.offset,
                col = rep(segment.annotation.col, each = length(segment_x)),
                cex = segment.cex,
                font = segment.font)
@@ -1240,10 +1318,20 @@ surv.plot <- function(
       ## Input >1 for segment.quantile()
     } else if (length(segment.quantile) > 1){
       if(!is.null(segment.main)) {warning("`segment.main` for more than one quantile is not supported")}
+      if(segment.annotation == "left") {
+        pos = 2
+      } else if(segment.annotation == "top"){
+        pos = 3
+      } else if(segment.annotation == "bottom"){
+        pos = 1
+      } else {
+        pos = 4
+      }
       text(x = t(segment_x$quantile),
            y = segment.quantile,
-           labels = round(t(segment_x$quantile),0),
+           labels = round(t(segment_x$quantile),1),
            pos = pos,
+           offset = segment.annotation.offset,
            col = rep(segment.annotation.col, each = length(segment.quantile)),
            cex = segment.cex,
            font = segment.font)
@@ -1263,7 +1351,7 @@ if (length(segment.timepoint) == 1 | length(segment.quantile) == 1){
     if (!is.null(segment.main)){
       text(text_xpos, max(text_ypos) + segment.annotation.space, label = segment.main, pos = pos,
            col = "black", cex = segment.cex, font = segment.main.font)
-    # Display corresponding title if `segment.quantile` was specified and confidence interval is displayed
+    # Display corresponding title if `segment.quantile` was specified and confidence interval is displayed or number of arms is not 2
     } else if (!is.null(segment.quantile) & (segment.confint == T | arm_no !=2)){
       # For median
       if (segment.quantile == 0.5){
@@ -1273,7 +1361,7 @@ if (length(segment.timepoint) == 1 | length(segment.quantile) == 1){
       } else {text(text_xpos, max(text_ypos) + segment.annotation.space, label = paste0(segment.quantile,"-Quantile (", conf.int * 100, "% CI)"), pos = pos,
                    col = "black", cex = segment.cex, font = segment.main.font)
       }
-    # Display corresponding title if `segment.timepoint` was specified and confidence interval is displayed
+    # Display corresponding title if `segment.timepoint` was specified and confidence interval is displayed or number of arms is not 2
     } else if (!is.null(segment.timepoint) & (segment.confint == T | arm_no !=2)){
       # If time unit was specified
       if(!missing(time.unit)){
@@ -1401,6 +1489,7 @@ if (length(segment.timepoint) == 1 | length(segment.quantile) == 1){
     }
     model$conf.type <- NULL
     model$conf.int <- NULL
+    model$ties <- ties
     model[1] <- call("coxph")
     model <- summary(eval(model), conf.int = stat.conf.int)
 
@@ -1568,13 +1657,11 @@ if(is.logical(risktable.censoring)){
 # 5.3 Add legend text to the outer margin for each arm ####
 #----------------------------------------------------------------------------#
       if (missing(risktable.name)) {
-        ristkable.name <- legend.name
-      } else {
-        ristkable.name <- risktable.name
+        risktable.name <- legend.name
       }
       if(arm_no > 1){
         for (i in 1:arm_no){
-          mtext(text = ristkable.name[i], side = 1, outer = FALSE,
+          mtext(text = risktable.name[i], side = 1, outer = FALSE,
                 line = i+risktable.pos, adj = 0, at = risktable.name.position,
                 font = risktable.name.font,
                 cex = risktable.name.cex,
